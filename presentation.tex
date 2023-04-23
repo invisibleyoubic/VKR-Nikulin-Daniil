@@ -1,0 +1,26 @@
+\documentclass{beamer} % Использование класса beamer для создания презентации
+\usetheme{Boadilla} % Применение темы Boadilla
+
+\usepackage[T2A]{fontenc} % Установка кодировки шрифта
+\usepackage[utf8]{inputenc} % Установка кодировки исходного текста
+\usepackage[english,russian]{babel} % Подключение локализации и переносов для русского и английского языков
+\usepackage{amsmath,amssymb} % Подключение математических символов и формул
+\usepackage{autonum} % Автоматическая нумерация формул только при наличии ссылок на них
+\usepackage{wrapfig} % Подключение пакета для обтекания текстом рисунков и таблиц
+\usepackage{array} % Подключение пакета для работы с таблицами
+
+\newcommand{\PreserveBackslash}[1]{\let\temp=\\#1\let\\=\temp} % Команда для сохранения обратной косой черты в ячейках таблицы
+\newcolumntype{C}[1]{>{\PreserveBackslash\centering}p{#1}} % Создание нового типа столбца с центрированным содержимым
+
+\usepackage[labelformat=empty]{caption} % Подключение пакета для настройки подписей и удаление названия "Рисунок"
+\graphicspath{{./images/}{./images/logo/}} % Указание папок, где искать изображения
+
+\setbeamertemplate{navigation symbols}{} % Удаление навигационных символов на слайдах
+\usepackage{ragged2e} % Подключение пакета для улучшенного выравнивания текста
+\newcommand{\jj}{\righthyphenmin=20 \justifying} % Команда для активации выравнивания по ширине с установкой минимального количества символов в слове перед переносом
+
+
+
+\begin{document}
+
+\end{document}
