@@ -8,6 +8,5 @@
 
 # Сборка
 
-* *pdflatex diploma* - собрать без списка литературы
-* *bibtex diploma* - собрать список литературы
-* *pdflatex diploma* - собрать со списком литературы
+* *make all* - собрать
+* *make clean* - очистить
