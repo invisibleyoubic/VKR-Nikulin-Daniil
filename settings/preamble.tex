@@ -14,6 +14,7 @@ times, % use Times font as main
 \usepackage[left=3cm, right=2cm, top=2cm, bottom=2cm]{geometry} % поля страницы
 \usepackage{graphicx} % подключение графики
 \usepackage{pdfpages} % вставка pdf-страниц
+\usepackage{microtype}
 
 % Таблицы
 \usepackage{array} % расширенные возможности для работы с таблицами
@@ -84,3 +85,6 @@ movenames=false
 % Установка стилей страницы и главы
 \pagestyle{footcenter}
 \chapterpagestyle{footcenter}
+
+\DeclareCaptionFormat{mycaptionformat}{\fontsize{11}{11}\selectfont#1#2#3}
+\captionsetup{format=mycaptionformat,labelsep=period}
