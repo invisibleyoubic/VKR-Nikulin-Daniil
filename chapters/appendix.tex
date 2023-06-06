@@ -4,3 +4,260 @@
 \end{center}
 \refstepcounter{chapter}
 \addcontentsline{toc}{chapter}{ПРИЛОЖЕНИЕ А}
+
+\lstset{language=C++,
+                basicstyle=\fontsize{11}{13}\linespread{0.1}\ttfamily,
+                keywordstyle=\color{blue}\ttfamily,
+                stringstyle=\color{red}\ttfamily,
+                commentstyle=\color{green}\ttfamily,
+                morecomment=[l][\color{magenta}]{\#}
+}
+
+\begin{lstlisting}[caption={Интерфейс модуля k-d дерево}, captionpos=b]
+export module kdtree;
+
+/// system
+import <vector>;
+import <tuple>;
+
+/// internal
+import atom;
+
+namespace psm
+{
+namespace kd
+{
+ struct KdNode
+ {
+  psm::Atom* point;
+  KdNode* left;
+  KdNode* right;
+  KdNode() {}
+  KdNode (psm::Atom* p)
+   : point(p)
+   , left(nullptr)
+   , right(nullptr) {}
+  ~KdNode()
+  {
+   delete left;
+   delete right;
+  }
+ };
+
+ export struct KDTree
+ {
+  typedef std::vector
+    <std::tuple<psm::Atom*,
+                psm::Atom*,
+                double,
+                double>> atom_pairs_type;
+  KdNode* root_;
+  KDTree(std::vector<psm::Atom*>& atoms);
+  void search(psm::Atom* point,
+              const double distance,
+  			  atom_pairs_type& pairs_data) const;
+  KdNode* build(std::vector<psm::Atom*>& points, 
+                const int depth, 
+                const int start,
+                const int end);
+  void search(const KdNode* node,
+              psm::Atom* point,
+              const double distance,
+              const int depth,
+              atom_pairs_type& pairs_data) const;
+  ~KDTree();
+ };
+} // kd
+} // psm
+\end{lstlisting}
+
+
+\newpage
+
+
+\begin{lstlisting}[caption={Реализация модуля k-d дерево}, captionpos=b]
+module kdtree;
+
+/// system
+import <vector>;
+import <tuple>;
+import <cmath>;
+
+/// internal
+import atom;
+
+namespace psm
+{
+namespace kd
+{
+ KDTree::KDTree(std::vector<psm::Atom*>& points)
+ {
+  root_ = build(points, 0, 0, points.size() - 1);
+ }
+ KDTree::~KDTree()
+ {
+  delete root_;
+ }
+ KdNode* KDTree::build(std::vector<psm::Atom*>& points,
+                       const int depth,
+                       const int start,
+                       const int end)
+ {
+  if(start > end)
+   return nullptr;
+  int mid = (start + end) / 2;
+  if(depth % 3 == 0)
+  {
+   std::nth_element(points.begin() + start,
+                    points.begin() + mid,
+                    points.begin() + end + 1,
+   [](psm::Atom* a, psm::Atom* b)
+   {
+    return a->get_coordinates().x < b->get_coordinates().x;
+   });
+  }
+  else if(depth % 3 == 1)
+  {
+   std::nth_element(points.begin() + start,
+                    points.begin() + mid,
+                    points.begin() + end + 1,
+   [](psm::Atom* a, psm::Atom* b)
+   {
+    return a->get_coordinates().y < b->get_coordinates().y;
+   });
+  }
+  else
+  {
+   std::nth_element(points.begin() + start,
+                    points.begin() + mid,
+                    points.begin() + end + 1,
+   [](psm::Atom* a, psm::Atom* b)
+   {
+    return a->get_coordinates().z < b->get_coordinates().z;
+   });
+  }
+  KdNode* node = new KdNode();
+  node->point = points[mid];
+  node->left = build(points, depth + 1, start, mid - 1);
+  node->right = build(points, depth + 1, mid + 1, end);
+  return node;
+ }
+ void KDTree::search(const KdNode* node,
+                     psm::Atom* point,
+                     const double distance, 
+                     const int depth,
+                     atom_pairs_type& pairs_data) const
+ {
+  if(node == nullptr)
+  	return;
+  double dd = node->point->get_coordinates()
+                   .squared_distance(point->get_coordinates());
+  double d = std::sqrt(dd);
+  if(distance >= d)
+  	pairs_data.push_back(
+  	               std::make_tuple(node->point, point, d, dd));
+  if(depth % 3 == 0)
+  {
+   if(point->get_coordinates().x - distance 
+     < node->point->get_coordinates().x)
+   {
+   	search(node->left, point, distance, depth + 1, pairs_data);
+   }
+   if(point->get_coordinates().x + distance 
+     > node->point->get_coordinates().x)
+   {
+   	search(node->right, point, distance, depth + 1, pairs_data);
+   }
+  }
+  else if(depth % 3 == 1)
+  {
+   if(point->get_coordinates().y - distance 
+     < node->point->get_coordinates().y)
+   {
+    search(node->left, point, distance, depth + 1, pairs_data);
+   }
+   if(point->get_coordinates().y + distance 
+     > node->point->get_coordinates().y)
+   {
+    search(node->right, point, distance, depth + 1, pairs_data);
+   }
+  }
+  else
+  {
+   if(point->get_coordinates().z - distance 
+     < node->point->get_coordinates().z)
+   {
+    search(node->left, point, distance, depth + 1, pairs_data);
+   }
+   if(point->get_coordinates().z + distance 
+     > node->point->get_coordinates().z)
+   {
+    search(node->right, point, distance, depth + 1, pairs_data);
+   }
+  }
+ }
+ void KDTree::search(psm::Atom* point,
+                     const double distance, 
+                     atom_pairs_type& pairs_data) const
+ {
+  search(root_, point, distance, 0, pairs_data);
+ }
+} // kd
+} // psm
+\end{lstlisting}
+
+
+\newpage
+
+
+\begin{lstlisting}[caption={Реализация оценочной функции с использованием k-d дерева}, captionpos=b]
+export module energy;
+
+/// system
+import <iostream>;
+import <utility>;
+import <string>;
+import <vector>;
+import <tuple>;
+import <map>;
+import <unordered_map>;
+import <fstream>;
+import <chrono>;
+
+/// internal
+import atom;
+import protein;
+import mover;
+import residue;
+import ienergy;
+import kdtree;
+
+namespace psm
+{
+
+ // ...
+
+ export class KdScoreFunction : public psm::ScoreFunction
+ {
+ public:
+  using ScoreFunction::init;
+  using ScoreFunction::get_atom_pairs_size; 
+  void exclusion_nbond() override
+  {
+   pairs_data.clear();
+   for (auto iter = atoms_ptrs.begin(); 
+        iter != atoms_ptrs.end(); ++iter)
+   {
+    kd::KDTree tree1(iter->second); 
+    for (auto it = std::next(iter); it != atoms_ptrs.end(); ++it)
+    {
+     for (auto& atom : it->second)
+     {
+      tree1.search(atom, chdata.CUTNB, pairs_data);
+     }
+    }
+   }
+  }
+ };
+} // psm
+\end{lstlisting}
